@@ -1,0 +1,8 @@
+appname: database-system
+build_pkg: ./cmd/grpc/main.go
+prev_build_cmds:
+- go generate ./...
+- go test ./...
+envs:
+- DEBUG=true
+
