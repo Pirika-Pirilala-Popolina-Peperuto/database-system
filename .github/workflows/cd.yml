@@ -34,6 +34,6 @@ jobs:
         with:
           push: true
           context: .
-          file: ./build/Dockerfile
+          file: build/Dockerfile
           tags: |
             ${{ env.IMAGE }}:${{ steps.prep.outputs.BUILD_ID }}
