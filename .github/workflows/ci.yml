@@ -42,6 +42,7 @@ jobs:
         run: |
           curl -LO $PB_REL/download/v$PB_VERSION/protoc-$PB_VERSION-linux-x86_64.zip
           unzip protoc-$PB_VERSION-linux-x86_64.zip -d $HOME/.local
+          rm protoc-$PB_VERSION-linux-x86_64.zip
           echo "$HOME/.local/bin" >> $GITHUB_PATH
         env:
           PB_REL: https://github.com/protocolbuffers/protobuf/releases
