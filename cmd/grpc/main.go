@@ -4,10 +4,15 @@ import (
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/proto/entpb"
 	pkg_grpc "github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/grpc"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/viper"
 	"google.golang.org/grpc"
 
 	"go.uber.org/fx"
 )
+
+func init() {
+	viper.AutoEnv()
+}
 
 func main() {
 	fx.New(
