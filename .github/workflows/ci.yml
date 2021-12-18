@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v2.4.0
       - uses: actions/setup-go@v2
         with:
-          go-version: ${{ matrix.go }}
+          go-version: ${{ matrix.go-version }}
       - uses: actions/cache@v2.1.7
         with:
           path: ~/go/pkg/mod
@@ -37,8 +37,10 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: "1.17"
-      - name: Install xmllint
+      - name: Install protobuf
         run: sudo apt-get install -y protobuf-compiler
+      - name: Install protoc-gen
+        run: go install google.golang.org/protobuf/cmd/protoc-gen-go@latest&&go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest&&go install entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc@latest
       - uses: actions/cache@v2.1.7
         with:
           path: ~/go/pkg/mod
