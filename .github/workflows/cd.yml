@@ -1,3 +1,9 @@
+on:
+  push:
+    branches:
+      - main
+
+name: push image
 jobs:
   build-push:
     env:
