@@ -10,6 +10,9 @@ jobs:
       IMAGE: wayne900619/database-system
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Generate build ID
         id: prep
         run: |
