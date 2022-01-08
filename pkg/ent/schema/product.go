@@ -37,6 +37,8 @@ func (Product) Fields() []ent.Field {
 			Annotations(entproto.Field(4)),
 		field.Int("quantity").
 			Annotations(entproto.Field(5)),
+		field.UUID("picture_id", uuid.UUID{}).
+			Annotations(entproto.Field(6)),
 	}
 }
 
@@ -45,16 +47,18 @@ func (Product) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("orders", Order.Type).
 			Ref("products").
-			Annotations(entproto.Field(6)),
-		edge.To("categories", Category.Type).
 			Annotations(entproto.Field(7)),
+		edge.To("categories", Category.Type).
+			Annotations(entproto.Field(8)),
 		edge.From("shopping_cart_owners", User.Type).
 			Ref("shopping_cart_products").
-			Annotations(entproto.Field(8)),
-		edge.To("picture", Picture.Type).
+			Annotations(entproto.Field(9)),
+		edge.From("picture", Picture.Type).
+			Ref("product").
 			Unique().
 			Required().
-			Annotations(entproto.Field(9)),
+			Field("picture_id").
+			Annotations(entproto.Field(10)),
 	}
 }
 

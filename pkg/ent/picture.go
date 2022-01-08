@@ -21,8 +21,7 @@ type Picture struct {
 	PictureURL string `json:"picture_url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PictureQuery when eager-loading is set.
-	Edges           PictureEdges `json:"edges"`
-	product_picture *uuid.UUID
+	Edges PictureEdges `json:"edges"`
 }
 
 // PictureEdges holds the relations/edges for other nodes in the graph.
@@ -57,8 +56,6 @@ func (*Picture) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullString)
 		case picture.FieldID:
 			values[i] = new(uuid.UUID)
-		case picture.ForeignKeys[0]: // product_picture
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Picture", columns[i])
 		}
@@ -85,13 +82,6 @@ func (pi *Picture) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field picture_url", values[i])
 			} else if value.Valid {
 				pi.PictureURL = value.String
-			}
-		case picture.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field product_picture", values[i])
-			} else if value.Valid {
-				pi.product_picture = new(uuid.UUID)
-				*pi.product_picture = *value.S.(*uuid.UUID)
 			}
 		}
 	}

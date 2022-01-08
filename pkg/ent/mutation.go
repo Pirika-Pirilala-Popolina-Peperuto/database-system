@@ -2539,6 +2539,42 @@ func (m *ProductMutation) ResetQuantity() {
 	m.addquantity = nil
 }
 
+// SetPictureID sets the "picture_id" field.
+func (m *ProductMutation) SetPictureID(u uuid.UUID) {
+	m.picture = &u
+}
+
+// PictureID returns the value of the "picture_id" field in the mutation.
+func (m *ProductMutation) PictureID() (r uuid.UUID, exists bool) {
+	v := m.picture
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPictureID returns the old "picture_id" field's value of the Product entity.
+// If the Product object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProductMutation) OldPictureID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldPictureID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldPictureID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPictureID: %w", err)
+	}
+	return oldValue.PictureID, nil
+}
+
+// ResetPictureID resets all changes to the "picture_id" field.
+func (m *ProductMutation) ResetPictureID() {
+	m.picture = nil
+}
+
 // AddOrderIDs adds the "orders" edge to the Order entity by ids.
 func (m *ProductMutation) AddOrderIDs(ids ...uuid.UUID) {
 	if m.orders == nil {
@@ -2701,11 +2737,6 @@ func (m *ProductMutation) ResetShoppingCartOwners() {
 	m.removedshopping_cart_owners = nil
 }
 
-// SetPictureID sets the "picture" edge to the Picture entity by id.
-func (m *ProductMutation) SetPictureID(id uuid.UUID) {
-	m.picture = &id
-}
-
 // ClearPicture clears the "picture" edge to the Picture entity.
 func (m *ProductMutation) ClearPicture() {
 	m.clearedpicture = true
@@ -2714,14 +2745,6 @@ func (m *ProductMutation) ClearPicture() {
 // PictureCleared reports if the "picture" edge to the Picture entity was cleared.
 func (m *ProductMutation) PictureCleared() bool {
 	return m.clearedpicture
-}
-
-// PictureID returns the "picture" edge ID in the mutation.
-func (m *ProductMutation) PictureID() (id uuid.UUID, exists bool) {
-	if m.picture != nil {
-		return *m.picture, true
-	}
-	return
 }
 
 // PictureIDs returns the "picture" edge IDs in the mutation.
@@ -2759,7 +2782,7 @@ func (m *ProductMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProductMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, product.FieldName)
 	}
@@ -2771,6 +2794,9 @@ func (m *ProductMutation) Fields() []string {
 	}
 	if m.quantity != nil {
 		fields = append(fields, product.FieldQuantity)
+	}
+	if m.picture != nil {
+		fields = append(fields, product.FieldPictureID)
 	}
 	return fields
 }
@@ -2788,6 +2814,8 @@ func (m *ProductMutation) Field(name string) (ent.Value, bool) {
 		return m.Price()
 	case product.FieldQuantity:
 		return m.Quantity()
+	case product.FieldPictureID:
+		return m.PictureID()
 	}
 	return nil, false
 }
@@ -2805,6 +2833,8 @@ func (m *ProductMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldPrice(ctx)
 	case product.FieldQuantity:
 		return m.OldQuantity(ctx)
+	case product.FieldPictureID:
+		return m.OldPictureID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Product field %s", name)
 }
@@ -2841,6 +2871,13 @@ func (m *ProductMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetQuantity(v)
+		return nil
+	case product.FieldPictureID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPictureID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Product field %s", name)
@@ -2938,6 +2975,9 @@ func (m *ProductMutation) ResetField(name string) error {
 		return nil
 	case product.FieldQuantity:
 		m.ResetQuantity()
+		return nil
+	case product.FieldPictureID:
+		m.ResetPictureID()
 		return nil
 	}
 	return fmt.Errorf("unknown Product field %s", name)

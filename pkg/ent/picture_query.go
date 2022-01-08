@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -28,7 +29,6 @@ type PictureQuery struct {
 	predicates []predicate.Picture
 	// eager-loading edges.
 	withProduct *ProductQuery
-	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -79,7 +79,7 @@ func (pq *PictureQuery) QueryProduct() *ProductQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(picture.Table, picture.FieldID, selector),
 			sqlgraph.To(product.Table, product.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, picture.ProductTable, picture.ProductColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, picture.ProductTable, picture.ProductColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -350,18 +350,11 @@ func (pq *PictureQuery) prepareQuery(ctx context.Context) error {
 func (pq *PictureQuery) sqlAll(ctx context.Context) ([]*Picture, error) {
 	var (
 		nodes       = []*Picture{}
-		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
 		loadedTypes = [1]bool{
 			pq.withProduct != nil,
 		}
 	)
-	if pq.withProduct != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, picture.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Picture{config: pq.config}
 		nodes = append(nodes, node)
@@ -383,31 +376,26 @@ func (pq *PictureQuery) sqlAll(ctx context.Context) ([]*Picture, error) {
 	}
 
 	if query := pq.withProduct; query != nil {
-		ids := make([]uuid.UUID, 0, len(nodes))
-		nodeids := make(map[uuid.UUID][]*Picture)
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Picture)
 		for i := range nodes {
-			if nodes[i].product_picture == nil {
-				continue
-			}
-			fk := *nodes[i].product_picture
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
 		}
-		query.Where(product.IDIn(ids...))
+		query.Where(predicate.Product(func(s *sql.Selector) {
+			s.Where(sql.InValues(picture.ProductColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			fk := n.PictureID
+			node, ok := nodeids[fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "product_picture" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "picture_id" returned %v for node %v`, fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Product = n
-			}
+			node.Edges.Product = n
 		}
 	}
 

@@ -5,6 +5,7 @@ import (
 
 	"fmt"
 
+	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
@@ -18,7 +19,7 @@ func init() {
 	viper.SetDefault("postgres.password", "12345678")
 }
 
-func NewPostgresClientWithLC(lc fx.Lifecycle) (*Client, error) {
+func NewSqlDriverWithLC(lc fx.Lifecycle) (*entsql.Driver, error) {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
 		viper.GetString("postgres.host"),
 		viper.GetInt("postgres.port"),
@@ -26,10 +27,12 @@ func NewPostgresClientWithLC(lc fx.Lifecycle) (*Client, error) {
 		viper.GetString("postgres.dbname"),
 		viper.GetString("postgres.password"),
 	)
-	db, err := Open("postgres", dsn)
-	if err != nil {
-		return nil, err
-	}
+
+	return entsql.Open("postgres", dsn)
+}
+
+func NewPostgresClientWithLC(drv *entsql.Driver, lc fx.Lifecycle) (*Client, error) {
+	db := NewClient(Driver(drv))
 
 	if viper.GetBool("debug") {
 		db = db.Debug()

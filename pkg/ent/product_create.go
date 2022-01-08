@@ -56,6 +56,12 @@ func (pc *ProductCreate) SetQuantity(i int) *ProductCreate {
 	return pc
 }
 
+// SetPictureID sets the "picture_id" field.
+func (pc *ProductCreate) SetPictureID(u uuid.UUID) *ProductCreate {
+	pc.mutation.SetPictureID(u)
+	return pc
+}
+
 // SetID sets the "id" field.
 func (pc *ProductCreate) SetID(u uuid.UUID) *ProductCreate {
 	pc.mutation.SetID(u)
@@ -105,12 +111,6 @@ func (pc *ProductCreate) AddShoppingCartOwners(u ...*User) *ProductCreate {
 		ids[i] = u[i].ID
 	}
 	return pc.AddShoppingCartOwnerIDs(ids...)
-}
-
-// SetPictureID sets the "picture" edge to the Picture entity by ID.
-func (pc *ProductCreate) SetPictureID(id uuid.UUID) *ProductCreate {
-	pc.mutation.SetPictureID(id)
-	return pc
 }
 
 // SetPicture sets the "picture" edge to the Picture entity.
@@ -196,6 +196,9 @@ func (pc *ProductCreate) check() error {
 	}
 	if _, ok := pc.mutation.Quantity(); !ok {
 		return &ValidationError{Name: "quantity", err: errors.New(`ent: missing required field "quantity"`)}
+	}
+	if _, ok := pc.mutation.PictureID(); !ok {
+		return &ValidationError{Name: "picture_id", err: errors.New(`ent: missing required field "picture_id"`)}
 	}
 	if _, ok := pc.mutation.PictureID(); !ok {
 		return &ValidationError{Name: "picture", err: errors.New("ent: missing required edge \"picture\"")}
@@ -324,7 +327,7 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 	if nodes := pc.mutation.PictureIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   product.PictureTable,
 			Columns: []string{product.PictureColumn},
 			Bidi:    false,
@@ -338,6 +341,7 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.PictureID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

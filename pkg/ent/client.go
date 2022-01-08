@@ -601,7 +601,7 @@ func (c *PictureClient) QueryProduct(pi *Picture) *ProductQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(picture.Table, picture.FieldID, id),
 			sqlgraph.To(product.Table, product.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, picture.ProductTable, picture.ProductColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, picture.ProductTable, picture.ProductColumn),
 		)
 		fromV = sqlgraph.Neighbors(pi.driver.Dialect(), step)
 		return fromV, nil
@@ -755,7 +755,7 @@ func (c *ProductClient) QueryPicture(pr *Product) *PictureQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(product.Table, product.FieldID, id),
 			sqlgraph.To(picture.Table, picture.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, product.PictureTable, product.PictureColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, product.PictureTable, product.PictureColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil

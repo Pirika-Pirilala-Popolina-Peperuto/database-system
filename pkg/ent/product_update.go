@@ -84,6 +84,12 @@ func (pu *ProductUpdate) AddQuantity(i int) *ProductUpdate {
 	return pu
 }
 
+// SetPictureID sets the "picture_id" field.
+func (pu *ProductUpdate) SetPictureID(u uuid.UUID) *ProductUpdate {
+	pu.mutation.SetPictureID(u)
+	return pu
+}
+
 // AddOrderIDs adds the "orders" edge to the Order entity by IDs.
 func (pu *ProductUpdate) AddOrderIDs(ids ...uuid.UUID) *ProductUpdate {
 	pu.mutation.AddOrderIDs(ids...)
@@ -127,12 +133,6 @@ func (pu *ProductUpdate) AddShoppingCartOwners(u ...*User) *ProductUpdate {
 		ids[i] = u[i].ID
 	}
 	return pu.AddShoppingCartOwnerIDs(ids...)
-}
-
-// SetPictureID sets the "picture" edge to the Picture entity by ID.
-func (pu *ProductUpdate) SetPictureID(id uuid.UUID) *ProductUpdate {
-	pu.mutation.SetPictureID(id)
-	return pu
 }
 
 // SetPicture sets the "picture" edge to the Picture entity.
@@ -513,7 +513,7 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if pu.mutation.PictureCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   product.PictureTable,
 			Columns: []string{product.PictureColumn},
 			Bidi:    false,
@@ -529,7 +529,7 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := pu.mutation.PictureIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   product.PictureTable,
 			Columns: []string{product.PictureColumn},
 			Bidi:    false,
@@ -616,6 +616,12 @@ func (puo *ProductUpdateOne) AddQuantity(i int) *ProductUpdateOne {
 	return puo
 }
 
+// SetPictureID sets the "picture_id" field.
+func (puo *ProductUpdateOne) SetPictureID(u uuid.UUID) *ProductUpdateOne {
+	puo.mutation.SetPictureID(u)
+	return puo
+}
+
 // AddOrderIDs adds the "orders" edge to the Order entity by IDs.
 func (puo *ProductUpdateOne) AddOrderIDs(ids ...uuid.UUID) *ProductUpdateOne {
 	puo.mutation.AddOrderIDs(ids...)
@@ -659,12 +665,6 @@ func (puo *ProductUpdateOne) AddShoppingCartOwners(u ...*User) *ProductUpdateOne
 		ids[i] = u[i].ID
 	}
 	return puo.AddShoppingCartOwnerIDs(ids...)
-}
-
-// SetPictureID sets the "picture" edge to the Picture entity by ID.
-func (puo *ProductUpdateOne) SetPictureID(id uuid.UUID) *ProductUpdateOne {
-	puo.mutation.SetPictureID(id)
-	return puo
 }
 
 // SetPicture sets the "picture" edge to the Picture entity.
@@ -1069,7 +1069,7 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	if puo.mutation.PictureCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   product.PictureTable,
 			Columns: []string{product.PictureColumn},
 			Bidi:    false,
@@ -1085,7 +1085,7 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	if nodes := puo.mutation.PictureIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   product.PictureTable,
 			Columns: []string{product.PictureColumn},
 			Bidi:    false,

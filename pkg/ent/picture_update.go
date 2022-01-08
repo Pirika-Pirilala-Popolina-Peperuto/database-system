@@ -146,7 +146,7 @@ func (pu *PictureUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if pu.mutation.ProductCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   picture.ProductTable,
 			Columns: []string{picture.ProductColumn},
 			Bidi:    false,
@@ -162,7 +162,7 @@ func (pu *PictureUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := pu.mutation.ProductIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   picture.ProductTable,
 			Columns: []string{picture.ProductColumn},
 			Bidi:    false,
@@ -339,7 +339,7 @@ func (puo *PictureUpdateOne) sqlSave(ctx context.Context) (_node *Picture, err e
 	if puo.mutation.ProductCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   picture.ProductTable,
 			Columns: []string{picture.ProductColumn},
 			Bidi:    false,
@@ -355,7 +355,7 @@ func (puo *PictureUpdateOne) sqlSave(ctx context.Context) (_node *Picture, err e
 	if nodes := puo.mutation.ProductIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   picture.ProductTable,
 			Columns: []string{picture.ProductColumn},
 			Bidi:    false,

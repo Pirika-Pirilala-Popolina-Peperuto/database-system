@@ -25,6 +25,8 @@ type Product struct {
 	Price float64 `json:"price,omitempty"`
 	// Quantity holds the value of the "quantity" field.
 	Quantity int `json:"quantity,omitempty"`
+	// PictureID holds the value of the "picture_id" field.
+	PictureID uuid.UUID `json:"picture_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProductQuery when eager-loading is set.
 	Edges ProductEdges `json:"edges"`
@@ -97,7 +99,7 @@ func (*Product) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case product.FieldName, product.FieldDescription:
 			values[i] = new(sql.NullString)
-		case product.FieldID:
+		case product.FieldID, product.FieldPictureID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Product", columns[i])
@@ -143,6 +145,12 @@ func (pr *Product) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field quantity", values[i])
 			} else if value.Valid {
 				pr.Quantity = int(value.Int64)
+			}
+		case product.FieldPictureID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field picture_id", values[i])
+			} else if value != nil {
+				pr.PictureID = *value
 			}
 		}
 	}
@@ -200,6 +208,8 @@ func (pr *Product) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pr.Price))
 	builder.WriteString(", quantity=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Quantity))
+	builder.WriteString(", picture_id=")
+	builder.WriteString(fmt.Sprintf("%v", pr.PictureID))
 	builder.WriteByte(')')
 	return builder.String()
 }

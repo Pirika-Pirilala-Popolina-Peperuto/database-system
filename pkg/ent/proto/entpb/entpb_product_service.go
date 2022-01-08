@@ -45,6 +45,11 @@ func toProtoProduct(e *ent.Product) (*Product, error) {
 	v.Id = id
 	name := e.Name
 	v.Name = name
+	pictureid, err := e.PictureID.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	v.PictureId = pictureid
 	price := e.Price
 	v.Price = price
 	quantity := int32(e.Quantity)
@@ -98,6 +103,11 @@ func (svc *ProductService) Create(ctx context.Context, req *CreateProductRequest
 	}
 	productName := product.GetName()
 	m.SetName(productName)
+	var productPictureID uuid.UUID
+	if err := (&productPictureID).UnmarshalBinary(product.GetPictureId()); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
+	m.SetPictureID(productPictureID)
 	productPrice := float64(product.GetPrice())
 	m.SetPrice(productPrice)
 	productQuantity := int(product.GetQuantity())
@@ -204,6 +214,11 @@ func (svc *ProductService) Update(ctx context.Context, req *UpdateProductRequest
 	}
 	productName := product.GetName()
 	m.SetName(productName)
+	var productPictureID uuid.UUID
+	if err := (&productPictureID).UnmarshalBinary(product.GetPictureId()); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
+	m.SetPictureID(productPictureID)
 	productPrice := float64(product.GetPrice())
 	m.SetPrice(productPrice)
 	productQuantity := int(product.GetQuantity())

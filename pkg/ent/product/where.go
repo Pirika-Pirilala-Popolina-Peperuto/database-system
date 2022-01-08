@@ -120,6 +120,13 @@ func Quantity(v int) predicate.Product {
 	})
 }
 
+// PictureID applies equality check predicate on the "picture_id" field. It's identical to PictureIDEQ.
+func PictureID(v uuid.UUID) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldPictureID), v))
+	})
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
@@ -508,6 +515,54 @@ func QuantityLTE(v int) predicate.Product {
 	})
 }
 
+// PictureIDEQ applies the EQ predicate on the "picture_id" field.
+func PictureIDEQ(v uuid.UUID) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldPictureID), v))
+	})
+}
+
+// PictureIDNEQ applies the NEQ predicate on the "picture_id" field.
+func PictureIDNEQ(v uuid.UUID) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldPictureID), v))
+	})
+}
+
+// PictureIDIn applies the In predicate on the "picture_id" field.
+func PictureIDIn(vs ...uuid.UUID) predicate.Product {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Product(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldPictureID), v...))
+	})
+}
+
+// PictureIDNotIn applies the NotIn predicate on the "picture_id" field.
+func PictureIDNotIn(vs ...uuid.UUID) predicate.Product {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Product(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldPictureID), v...))
+	})
+}
+
 // HasOrders applies the HasEdge predicate on the "orders" edge.
 func HasOrders() predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
@@ -598,7 +653,7 @@ func HasPicture() predicate.Product {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PictureTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, PictureTable, PictureColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, PictureTable, PictureColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -610,7 +665,7 @@ func HasPictureWith(preds ...predicate.Picture) predicate.Product {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PictureInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, PictureTable, PictureColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, PictureTable, PictureColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

@@ -32,8 +32,7 @@ func (Picture) Fields() []ent.Field {
 // Edges of the Picture.
 func (Picture) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("product", Product.Type).
-			Ref("picture").
+		edge.To("product", Product.Type).
 			Unique().
 			Annotations(entproto.Field(3)),
 	}

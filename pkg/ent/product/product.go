@@ -15,6 +15,8 @@ const (
 	FieldPrice = "price"
 	// FieldQuantity holds the string denoting the quantity field in the database.
 	FieldQuantity = "quantity"
+	// FieldPictureID holds the string denoting the picture_id field in the database.
+	FieldPictureID = "picture_id"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
 	EdgeOrders = "orders"
 	// EdgeCategories holds the string denoting the categories edge name in mutations.
@@ -41,12 +43,12 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	ShoppingCartOwnersInverseTable = "users"
 	// PictureTable is the table that holds the picture relation/edge.
-	PictureTable = "pictures"
+	PictureTable = "products"
 	// PictureInverseTable is the table name for the Picture entity.
 	// It exists in this package in order to avoid circular dependency with the "picture" package.
 	PictureInverseTable = "pictures"
 	// PictureColumn is the table column denoting the picture relation/edge.
-	PictureColumn = "product_picture"
+	PictureColumn = "picture_id"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -56,6 +58,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldPrice,
 	FieldQuantity,
+	FieldPictureID,
 }
 
 var (

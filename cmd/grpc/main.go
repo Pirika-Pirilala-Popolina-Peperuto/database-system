@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/internal/handler"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/proto/entpb"
 	pkg_grpc "github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/grpc"
@@ -17,6 +19,7 @@ func init() {
 func main() {
 	fx.New(
 		fx.Provide(
+			ent.NewSqlDriverWithLC,
 			ent.NewPostgresClientWithLC,
 			fx.Annotate(
 				pkg_grpc.NewServerWithLC,
@@ -42,6 +45,7 @@ func main() {
 				entpb.NewUserService,
 				fx.As(new(entpb.UserServiceServer)),
 			),
+			pkg.NewRouter,
 		),
 		fx.Invoke(
 			entpb.RegisterCategoryServiceServer,
@@ -49,6 +53,7 @@ func main() {
 			entpb.RegisterOrderServiceServer,
 			entpb.RegisterProductServiceServer,
 			entpb.RegisterUserServiceServer,
+			handler.RegisterApiHandler,
 		),
 	).Run()
 }

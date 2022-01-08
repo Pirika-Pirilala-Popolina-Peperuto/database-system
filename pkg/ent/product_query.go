@@ -151,7 +151,7 @@ func (pq *ProductQuery) QueryPicture() *PictureQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(product.Table, product.FieldID, selector),
 			sqlgraph.To(picture.Table, picture.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, product.PictureTable, product.PictureColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, product.PictureTable, product.PictureColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -682,30 +682,28 @@ func (pq *ProductQuery) sqlAll(ctx context.Context) ([]*Product, error) {
 	}
 
 	if query := pq.withPicture; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[uuid.UUID]*Product)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Product)
 		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
+			fk := nodes[i].PictureID
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
-		query.withFKs = true
-		query.Where(predicate.Picture(func(s *sql.Selector) {
-			s.Where(sql.InValues(product.PictureColumn, fks...))
-		}))
+		query.Where(picture.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.product_picture
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "product_picture" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
+			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "product_picture" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "picture_id" returned %v`, n.ID)
 			}
-			node.Edges.Picture = n
+			for i := range nodes {
+				nodes[i].Edges.Picture = n
+			}
 		}
 	}
 
