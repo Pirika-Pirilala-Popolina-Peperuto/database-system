@@ -11,6 +11,7 @@ import (
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/category"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/discount"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/order"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/picture"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/product"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/user"
 )
@@ -36,6 +37,7 @@ func columnChecker(table string) func(string) error {
 		category.Table: category.ValidColumn,
 		discount.Table: discount.ValidColumn,
 		order.Table:    order.ValidColumn,
+		picture.Table:  picture.ValidColumn,
 		product.Table:  product.ValidColumn,
 		user.Table:     user.ValidColumn,
 	}

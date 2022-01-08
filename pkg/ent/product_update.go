@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
@@ -11,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/category"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/order"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/picture"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/predicate"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/product"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/user"
@@ -82,26 +84,6 @@ func (pu *ProductUpdate) AddQuantity(i int) *ProductUpdate {
 	return pu
 }
 
-// SetPictureURL sets the "picture_url" field.
-func (pu *ProductUpdate) SetPictureURL(s string) *ProductUpdate {
-	pu.mutation.SetPictureURL(s)
-	return pu
-}
-
-// SetNillablePictureURL sets the "picture_url" field if the given value is not nil.
-func (pu *ProductUpdate) SetNillablePictureURL(s *string) *ProductUpdate {
-	if s != nil {
-		pu.SetPictureURL(*s)
-	}
-	return pu
-}
-
-// ClearPictureURL clears the value of the "picture_url" field.
-func (pu *ProductUpdate) ClearPictureURL() *ProductUpdate {
-	pu.mutation.ClearPictureURL()
-	return pu
-}
-
 // AddOrderIDs adds the "orders" edge to the Order entity by IDs.
 func (pu *ProductUpdate) AddOrderIDs(ids ...uuid.UUID) *ProductUpdate {
 	pu.mutation.AddOrderIDs(ids...)
@@ -145,6 +127,17 @@ func (pu *ProductUpdate) AddShoppingCartOwners(u ...*User) *ProductUpdate {
 		ids[i] = u[i].ID
 	}
 	return pu.AddShoppingCartOwnerIDs(ids...)
+}
+
+// SetPictureID sets the "picture" edge to the Picture entity by ID.
+func (pu *ProductUpdate) SetPictureID(id uuid.UUID) *ProductUpdate {
+	pu.mutation.SetPictureID(id)
+	return pu
+}
+
+// SetPicture sets the "picture" edge to the Picture entity.
+func (pu *ProductUpdate) SetPicture(p *Picture) *ProductUpdate {
+	return pu.SetPictureID(p.ID)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -215,6 +208,12 @@ func (pu *ProductUpdate) RemoveShoppingCartOwners(u ...*User) *ProductUpdate {
 	return pu.RemoveShoppingCartOwnerIDs(ids...)
 }
 
+// ClearPicture clears the "picture" edge to the Picture entity.
+func (pu *ProductUpdate) ClearPicture() *ProductUpdate {
+	pu.mutation.ClearPicture()
+	return pu
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pu *ProductUpdate) Save(ctx context.Context) (int, error) {
 	var (
@@ -222,12 +221,18 @@ func (pu *ProductUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(pu.hooks) == 0 {
+		if err = pu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = pu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*ProductMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = pu.check(); err != nil {
+				return 0, err
 			}
 			pu.mutation = mutation
 			affected, err = pu.sqlSave(ctx)
@@ -267,6 +272,14 @@ func (pu *ProductUpdate) ExecX(ctx context.Context) {
 	if err := pu.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (pu *ProductUpdate) check() error {
+	if _, ok := pu.mutation.PictureID(); pu.mutation.PictureCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"picture\"")
+	}
+	return nil
 }
 
 func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -333,19 +346,6 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: product.FieldQuantity,
-		})
-	}
-	if value, ok := pu.mutation.PictureURL(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: product.FieldPictureURL,
-		})
-	}
-	if pu.mutation.PictureURLCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: product.FieldPictureURL,
 		})
 	}
 	if pu.mutation.OrdersCleared() {
@@ -510,6 +510,41 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.PictureCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   product.PictureTable,
+			Columns: []string{product.PictureColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: picture.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.PictureIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   product.PictureTable,
+			Columns: []string{product.PictureColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: picture.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{product.Label}
@@ -581,26 +616,6 @@ func (puo *ProductUpdateOne) AddQuantity(i int) *ProductUpdateOne {
 	return puo
 }
 
-// SetPictureURL sets the "picture_url" field.
-func (puo *ProductUpdateOne) SetPictureURL(s string) *ProductUpdateOne {
-	puo.mutation.SetPictureURL(s)
-	return puo
-}
-
-// SetNillablePictureURL sets the "picture_url" field if the given value is not nil.
-func (puo *ProductUpdateOne) SetNillablePictureURL(s *string) *ProductUpdateOne {
-	if s != nil {
-		puo.SetPictureURL(*s)
-	}
-	return puo
-}
-
-// ClearPictureURL clears the value of the "picture_url" field.
-func (puo *ProductUpdateOne) ClearPictureURL() *ProductUpdateOne {
-	puo.mutation.ClearPictureURL()
-	return puo
-}
-
 // AddOrderIDs adds the "orders" edge to the Order entity by IDs.
 func (puo *ProductUpdateOne) AddOrderIDs(ids ...uuid.UUID) *ProductUpdateOne {
 	puo.mutation.AddOrderIDs(ids...)
@@ -644,6 +659,17 @@ func (puo *ProductUpdateOne) AddShoppingCartOwners(u ...*User) *ProductUpdateOne
 		ids[i] = u[i].ID
 	}
 	return puo.AddShoppingCartOwnerIDs(ids...)
+}
+
+// SetPictureID sets the "picture" edge to the Picture entity by ID.
+func (puo *ProductUpdateOne) SetPictureID(id uuid.UUID) *ProductUpdateOne {
+	puo.mutation.SetPictureID(id)
+	return puo
+}
+
+// SetPicture sets the "picture" edge to the Picture entity.
+func (puo *ProductUpdateOne) SetPicture(p *Picture) *ProductUpdateOne {
+	return puo.SetPictureID(p.ID)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -714,6 +740,12 @@ func (puo *ProductUpdateOne) RemoveShoppingCartOwners(u ...*User) *ProductUpdate
 	return puo.RemoveShoppingCartOwnerIDs(ids...)
 }
 
+// ClearPicture clears the "picture" edge to the Picture entity.
+func (puo *ProductUpdateOne) ClearPicture() *ProductUpdateOne {
+	puo.mutation.ClearPicture()
+	return puo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (puo *ProductUpdateOne) Select(field string, fields ...string) *ProductUpdateOne {
@@ -728,12 +760,18 @@ func (puo *ProductUpdateOne) Save(ctx context.Context) (*Product, error) {
 		node *Product
 	)
 	if len(puo.hooks) == 0 {
+		if err = puo.check(); err != nil {
+			return nil, err
+		}
 		node, err = puo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*ProductMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = puo.check(); err != nil {
+				return nil, err
 			}
 			puo.mutation = mutation
 			node, err = puo.sqlSave(ctx)
@@ -773,6 +811,14 @@ func (puo *ProductUpdateOne) ExecX(ctx context.Context) {
 	if err := puo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (puo *ProductUpdateOne) check() error {
+	if _, ok := puo.mutation.PictureID(); puo.mutation.PictureCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"picture\"")
+	}
+	return nil
 }
 
 func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err error) {
@@ -856,19 +902,6 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: product.FieldQuantity,
-		})
-	}
-	if value, ok := puo.mutation.PictureURL(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: product.FieldPictureURL,
-		})
-	}
-	if puo.mutation.PictureURLCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: product.FieldPictureURL,
 		})
 	}
 	if puo.mutation.OrdersCleared() {
@@ -1025,6 +1058,41 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.PictureCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   product.PictureTable,
+			Columns: []string{product.PictureColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: picture.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.PictureIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   product.PictureTable,
+			Columns: []string{product.PictureColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: picture.FieldID,
 				},
 			},
 		}

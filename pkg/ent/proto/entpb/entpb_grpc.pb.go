@@ -705,6 +705,236 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "entpb/entpb.proto",
 }
 
+// PictureServiceClient is the client API for PictureService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PictureServiceClient interface {
+	Create(ctx context.Context, in *CreatePictureRequest, opts ...grpc.CallOption) (*Picture, error)
+	Get(ctx context.Context, in *GetPictureRequest, opts ...grpc.CallOption) (*Picture, error)
+	Update(ctx context.Context, in *UpdatePictureRequest, opts ...grpc.CallOption) (*Picture, error)
+	Delete(ctx context.Context, in *DeletePictureRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	List(ctx context.Context, in *ListPictureRequest, opts ...grpc.CallOption) (*ListPictureResponse, error)
+}
+
+type pictureServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPictureServiceClient(cc grpc.ClientConnInterface) PictureServiceClient {
+	return &pictureServiceClient{cc}
+}
+
+func (c *pictureServiceClient) Create(ctx context.Context, in *CreatePictureRequest, opts ...grpc.CallOption) (*Picture, error) {
+	out := new(Picture)
+	err := c.cc.Invoke(ctx, "/entpb.PictureService/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pictureServiceClient) Get(ctx context.Context, in *GetPictureRequest, opts ...grpc.CallOption) (*Picture, error) {
+	out := new(Picture)
+	err := c.cc.Invoke(ctx, "/entpb.PictureService/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pictureServiceClient) Update(ctx context.Context, in *UpdatePictureRequest, opts ...grpc.CallOption) (*Picture, error) {
+	out := new(Picture)
+	err := c.cc.Invoke(ctx, "/entpb.PictureService/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pictureServiceClient) Delete(ctx context.Context, in *DeletePictureRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/entpb.PictureService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pictureServiceClient) List(ctx context.Context, in *ListPictureRequest, opts ...grpc.CallOption) (*ListPictureResponse, error) {
+	out := new(ListPictureResponse)
+	err := c.cc.Invoke(ctx, "/entpb.PictureService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PictureServiceServer is the server API for PictureService service.
+// All implementations must embed UnimplementedPictureServiceServer
+// for forward compatibility
+type PictureServiceServer interface {
+	Create(context.Context, *CreatePictureRequest) (*Picture, error)
+	Get(context.Context, *GetPictureRequest) (*Picture, error)
+	Update(context.Context, *UpdatePictureRequest) (*Picture, error)
+	Delete(context.Context, *DeletePictureRequest) (*emptypb.Empty, error)
+	List(context.Context, *ListPictureRequest) (*ListPictureResponse, error)
+	mustEmbedUnimplementedPictureServiceServer()
+}
+
+// UnimplementedPictureServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedPictureServiceServer struct {
+}
+
+func (UnimplementedPictureServiceServer) Create(context.Context, *CreatePictureRequest) (*Picture, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedPictureServiceServer) Get(context.Context, *GetPictureRequest) (*Picture, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedPictureServiceServer) Update(context.Context, *UpdatePictureRequest) (*Picture, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedPictureServiceServer) Delete(context.Context, *DeletePictureRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedPictureServiceServer) List(context.Context, *ListPictureRequest) (*ListPictureResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedPictureServiceServer) mustEmbedUnimplementedPictureServiceServer() {}
+
+// UnsafePictureServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PictureServiceServer will
+// result in compilation errors.
+type UnsafePictureServiceServer interface {
+	mustEmbedUnimplementedPictureServiceServer()
+}
+
+func RegisterPictureServiceServer(s grpc.ServiceRegistrar, srv PictureServiceServer) {
+	s.RegisterService(&PictureService_ServiceDesc, srv)
+}
+
+func _PictureService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePictureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PictureServiceServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PictureService/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PictureServiceServer).Create(ctx, req.(*CreatePictureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PictureService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPictureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PictureServiceServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PictureService/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PictureServiceServer).Get(ctx, req.(*GetPictureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PictureService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePictureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PictureServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PictureService/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PictureServiceServer).Update(ctx, req.(*UpdatePictureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PictureService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePictureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PictureServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PictureService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PictureServiceServer).Delete(ctx, req.(*DeletePictureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PictureService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPictureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PictureServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PictureService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PictureServiceServer).List(ctx, req.(*ListPictureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PictureService_ServiceDesc is the grpc.ServiceDesc for PictureService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PictureService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "entpb.PictureService",
+	HandlerType: (*PictureServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _PictureService_Create_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _PictureService_Get_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _PictureService_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _PictureService_Delete_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _PictureService_List_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "entpb/entpb.proto",
+}
+
 // ProductServiceClient is the client API for ProductService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.

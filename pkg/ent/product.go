@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/picture"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/product"
 	"github.com/google/uuid"
 )
@@ -24,8 +25,6 @@ type Product struct {
 	Price float64 `json:"price,omitempty"`
 	// Quantity holds the value of the "quantity" field.
 	Quantity int `json:"quantity,omitempty"`
-	// PictureURL holds the value of the "picture_url" field.
-	PictureURL string `json:"picture_url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProductQuery when eager-loading is set.
 	Edges ProductEdges `json:"edges"`
@@ -39,9 +38,11 @@ type ProductEdges struct {
 	Categories []*Category `json:"categories,omitempty"`
 	// ShoppingCartOwners holds the value of the shopping_cart_owners edge.
 	ShoppingCartOwners []*User `json:"shopping_cart_owners,omitempty"`
+	// Picture holds the value of the picture edge.
+	Picture *Picture `json:"picture,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // OrdersOrErr returns the Orders value or an error if the edge
@@ -71,6 +72,20 @@ func (e ProductEdges) ShoppingCartOwnersOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "shopping_cart_owners"}
 }
 
+// PictureOrErr returns the Picture value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProductEdges) PictureOrErr() (*Picture, error) {
+	if e.loadedTypes[3] {
+		if e.Picture == nil {
+			// The edge picture was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: picture.Label}
+		}
+		return e.Picture, nil
+	}
+	return nil, &NotLoadedError{edge: "picture"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Product) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -80,7 +95,7 @@ func (*Product) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullFloat64)
 		case product.FieldQuantity:
 			values[i] = new(sql.NullInt64)
-		case product.FieldName, product.FieldDescription, product.FieldPictureURL:
+		case product.FieldName, product.FieldDescription:
 			values[i] = new(sql.NullString)
 		case product.FieldID:
 			values[i] = new(uuid.UUID)
@@ -129,12 +144,6 @@ func (pr *Product) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				pr.Quantity = int(value.Int64)
 			}
-		case product.FieldPictureURL:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field picture_url", values[i])
-			} else if value.Valid {
-				pr.PictureURL = value.String
-			}
 		}
 	}
 	return nil
@@ -153,6 +162,11 @@ func (pr *Product) QueryCategories() *CategoryQuery {
 // QueryShoppingCartOwners queries the "shopping_cart_owners" edge of the Product entity.
 func (pr *Product) QueryShoppingCartOwners() *UserQuery {
 	return (&ProductClient{config: pr.config}).QueryShoppingCartOwners(pr)
+}
+
+// QueryPicture queries the "picture" edge of the Product entity.
+func (pr *Product) QueryPicture() *PictureQuery {
+	return (&ProductClient{config: pr.config}).QueryPicture(pr)
 }
 
 // Update returns a builder for updating this Product.
@@ -186,8 +200,6 @@ func (pr *Product) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pr.Price))
 	builder.WriteString(", quantity=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Quantity))
-	builder.WriteString(", picture_url=")
-	builder.WriteString(pr.PictureURL)
 	builder.WriteByte(')')
 	return builder.String()
 }

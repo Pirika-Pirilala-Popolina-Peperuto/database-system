@@ -15,6 +15,9 @@ type Discount func(*sql.Selector)
 // Order is the predicate function for order builders.
 type Order func(*sql.Selector)
 
+// Picture is the predicate function for picture builders.
+type Picture func(*sql.Selector)
+
 // Product is the predicate function for product builders.
 type Product func(*sql.Selector)
 

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/category"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/order"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/picture"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/predicate"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/product"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/user"
@@ -33,6 +34,7 @@ type ProductQuery struct {
 	withOrders             *OrderQuery
 	withCategories         *CategoryQuery
 	withShoppingCartOwners *UserQuery
+	withPicture            *PictureQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -128,6 +130,28 @@ func (pq *ProductQuery) QueryShoppingCartOwners() *UserQuery {
 			sqlgraph.From(product.Table, product.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, product.ShoppingCartOwnersTable, product.ShoppingCartOwnersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPicture chains the current query on the "picture" edge.
+func (pq *ProductQuery) QueryPicture() *PictureQuery {
+	query := &PictureQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(picture.Table, picture.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, product.PictureTable, product.PictureColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -319,6 +343,7 @@ func (pq *ProductQuery) Clone() *ProductQuery {
 		withOrders:             pq.withOrders.Clone(),
 		withCategories:         pq.withCategories.Clone(),
 		withShoppingCartOwners: pq.withShoppingCartOwners.Clone(),
+		withPicture:            pq.withPicture.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -355,6 +380,17 @@ func (pq *ProductQuery) WithShoppingCartOwners(opts ...func(*UserQuery)) *Produc
 		opt(query)
 	}
 	pq.withShoppingCartOwners = query
+	return pq
+}
+
+// WithPicture tells the query-builder to eager-load the nodes that are connected to
+// the "picture" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithPicture(opts ...func(*PictureQuery)) *ProductQuery {
+	query := &PictureQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withPicture = query
 	return pq
 }
 
@@ -423,10 +459,11 @@ func (pq *ProductQuery) sqlAll(ctx context.Context) ([]*Product, error) {
 	var (
 		nodes       = []*Product{}
 		_spec       = pq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			pq.withOrders != nil,
 			pq.withCategories != nil,
 			pq.withShoppingCartOwners != nil,
+			pq.withPicture != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -641,6 +678,34 @@ func (pq *ProductQuery) sqlAll(ctx context.Context) ([]*Product, error) {
 			for i := range nodes {
 				nodes[i].Edges.ShoppingCartOwners = append(nodes[i].Edges.ShoppingCartOwners, n)
 			}
+		}
+	}
+
+	if query := pq.withPicture; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Product)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Picture(func(s *sql.Selector) {
+			s.Where(sql.InValues(product.PictureColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.product_picture
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "product_picture" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "product_picture" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Picture = n
 		}
 	}
 

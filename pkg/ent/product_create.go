@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/category"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/order"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/picture"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/product"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/user"
 	"github.com/google/uuid"
@@ -52,20 +53,6 @@ func (pc *ProductCreate) SetPrice(f float64) *ProductCreate {
 // SetQuantity sets the "quantity" field.
 func (pc *ProductCreate) SetQuantity(i int) *ProductCreate {
 	pc.mutation.SetQuantity(i)
-	return pc
-}
-
-// SetPictureURL sets the "picture_url" field.
-func (pc *ProductCreate) SetPictureURL(s string) *ProductCreate {
-	pc.mutation.SetPictureURL(s)
-	return pc
-}
-
-// SetNillablePictureURL sets the "picture_url" field if the given value is not nil.
-func (pc *ProductCreate) SetNillablePictureURL(s *string) *ProductCreate {
-	if s != nil {
-		pc.SetPictureURL(*s)
-	}
 	return pc
 }
 
@@ -118,6 +105,17 @@ func (pc *ProductCreate) AddShoppingCartOwners(u ...*User) *ProductCreate {
 		ids[i] = u[i].ID
 	}
 	return pc.AddShoppingCartOwnerIDs(ids...)
+}
+
+// SetPictureID sets the "picture" edge to the Picture entity by ID.
+func (pc *ProductCreate) SetPictureID(id uuid.UUID) *ProductCreate {
+	pc.mutation.SetPictureID(id)
+	return pc
+}
+
+// SetPicture sets the "picture" edge to the Picture entity.
+func (pc *ProductCreate) SetPicture(p *Picture) *ProductCreate {
+	return pc.SetPictureID(p.ID)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -199,6 +197,9 @@ func (pc *ProductCreate) check() error {
 	if _, ok := pc.mutation.Quantity(); !ok {
 		return &ValidationError{Name: "quantity", err: errors.New(`ent: missing required field "quantity"`)}
 	}
+	if _, ok := pc.mutation.PictureID(); !ok {
+		return &ValidationError{Name: "picture", err: errors.New("ent: missing required edge \"picture\"")}
+	}
 	return nil
 }
 
@@ -263,14 +264,6 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		})
 		_node.Quantity = value
 	}
-	if value, ok := pc.mutation.PictureURL(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: product.FieldPictureURL,
-		})
-		_node.PictureURL = value
-	}
 	if nodes := pc.mutation.OrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -320,6 +313,25 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.PictureIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   product.PictureTable,
+			Columns: []string{product.PictureColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: picture.FieldID,
 				},
 			},
 		}

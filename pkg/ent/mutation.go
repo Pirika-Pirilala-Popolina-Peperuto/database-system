@@ -11,6 +11,7 @@ import (
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/category"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/discount"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/order"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/picture"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/predicate"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/product"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/user"
@@ -31,6 +32,7 @@ const (
 	TypeCategory = "Category"
 	TypeDiscount = "Discount"
 	TypeOrder    = "Order"
+	TypePicture  = "Picture"
 	TypeProduct  = "Product"
 	TypeUser     = "User"
 )
@@ -1859,6 +1861,373 @@ func (m *OrderMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Order edge %s", name)
 }
 
+// PictureMutation represents an operation that mutates the Picture nodes in the graph.
+type PictureMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	picture_url    *string
+	clearedFields  map[string]struct{}
+	product        *uuid.UUID
+	clearedproduct bool
+	done           bool
+	oldValue       func(context.Context) (*Picture, error)
+	predicates     []predicate.Picture
+}
+
+var _ ent.Mutation = (*PictureMutation)(nil)
+
+// pictureOption allows management of the mutation configuration using functional options.
+type pictureOption func(*PictureMutation)
+
+// newPictureMutation creates new mutation for the Picture entity.
+func newPictureMutation(c config, op Op, opts ...pictureOption) *PictureMutation {
+	m := &PictureMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePicture,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPictureID sets the ID field of the mutation.
+func withPictureID(id uuid.UUID) pictureOption {
+	return func(m *PictureMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Picture
+		)
+		m.oldValue = func(ctx context.Context) (*Picture, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Picture.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPicture sets the old Picture of the mutation.
+func withPicture(node *Picture) pictureOption {
+	return func(m *PictureMutation) {
+		m.oldValue = func(context.Context) (*Picture, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PictureMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PictureMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Picture entities.
+func (m *PictureMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PictureMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetPictureURL sets the "picture_url" field.
+func (m *PictureMutation) SetPictureURL(s string) {
+	m.picture_url = &s
+}
+
+// PictureURL returns the value of the "picture_url" field in the mutation.
+func (m *PictureMutation) PictureURL() (r string, exists bool) {
+	v := m.picture_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPictureURL returns the old "picture_url" field's value of the Picture entity.
+// If the Picture object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PictureMutation) OldPictureURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldPictureURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldPictureURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPictureURL: %w", err)
+	}
+	return oldValue.PictureURL, nil
+}
+
+// ResetPictureURL resets all changes to the "picture_url" field.
+func (m *PictureMutation) ResetPictureURL() {
+	m.picture_url = nil
+}
+
+// SetProductID sets the "product" edge to the Product entity by id.
+func (m *PictureMutation) SetProductID(id uuid.UUID) {
+	m.product = &id
+}
+
+// ClearProduct clears the "product" edge to the Product entity.
+func (m *PictureMutation) ClearProduct() {
+	m.clearedproduct = true
+}
+
+// ProductCleared reports if the "product" edge to the Product entity was cleared.
+func (m *PictureMutation) ProductCleared() bool {
+	return m.clearedproduct
+}
+
+// ProductID returns the "product" edge ID in the mutation.
+func (m *PictureMutation) ProductID() (id uuid.UUID, exists bool) {
+	if m.product != nil {
+		return *m.product, true
+	}
+	return
+}
+
+// ProductIDs returns the "product" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProductID instead. It exists only for internal usage by the builders.
+func (m *PictureMutation) ProductIDs() (ids []uuid.UUID) {
+	if id := m.product; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProduct resets all changes to the "product" edge.
+func (m *PictureMutation) ResetProduct() {
+	m.product = nil
+	m.clearedproduct = false
+}
+
+// Where appends a list predicates to the PictureMutation builder.
+func (m *PictureMutation) Where(ps ...predicate.Picture) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *PictureMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Picture).
+func (m *PictureMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PictureMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.picture_url != nil {
+		fields = append(fields, picture.FieldPictureURL)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PictureMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case picture.FieldPictureURL:
+		return m.PictureURL()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PictureMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case picture.FieldPictureURL:
+		return m.OldPictureURL(ctx)
+	}
+	return nil, fmt.Errorf("unknown Picture field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PictureMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case picture.FieldPictureURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPictureURL(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Picture field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PictureMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PictureMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PictureMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Picture numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PictureMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PictureMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PictureMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Picture nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PictureMutation) ResetField(name string) error {
+	switch name {
+	case picture.FieldPictureURL:
+		m.ResetPictureURL()
+		return nil
+	}
+	return fmt.Errorf("unknown Picture field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PictureMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.product != nil {
+		edges = append(edges, picture.EdgeProduct)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PictureMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case picture.EdgeProduct:
+		if id := m.product; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PictureMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PictureMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PictureMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedproduct {
+		edges = append(edges, picture.EdgeProduct)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PictureMutation) EdgeCleared(name string) bool {
+	switch name {
+	case picture.EdgeProduct:
+		return m.clearedproduct
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PictureMutation) ClearEdge(name string) error {
+	switch name {
+	case picture.EdgeProduct:
+		m.ClearProduct()
+		return nil
+	}
+	return fmt.Errorf("unknown Picture unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PictureMutation) ResetEdge(name string) error {
+	switch name {
+	case picture.EdgeProduct:
+		m.ResetProduct()
+		return nil
+	}
+	return fmt.Errorf("unknown Picture edge %s", name)
+}
+
 // ProductMutation represents an operation that mutates the Product nodes in the graph.
 type ProductMutation struct {
 	config
@@ -1871,7 +2240,6 @@ type ProductMutation struct {
 	addprice                    *float64
 	quantity                    *int
 	addquantity                 *int
-	picture_url                 *string
 	clearedFields               map[string]struct{}
 	orders                      map[uuid.UUID]struct{}
 	removedorders               map[uuid.UUID]struct{}
@@ -1882,6 +2250,8 @@ type ProductMutation struct {
 	shopping_cart_owners        map[uuid.UUID]struct{}
 	removedshopping_cart_owners map[uuid.UUID]struct{}
 	clearedshopping_cart_owners bool
+	picture                     *uuid.UUID
+	clearedpicture              bool
 	done                        bool
 	oldValue                    func(context.Context) (*Product, error)
 	predicates                  []predicate.Product
@@ -2169,55 +2539,6 @@ func (m *ProductMutation) ResetQuantity() {
 	m.addquantity = nil
 }
 
-// SetPictureURL sets the "picture_url" field.
-func (m *ProductMutation) SetPictureURL(s string) {
-	m.picture_url = &s
-}
-
-// PictureURL returns the value of the "picture_url" field in the mutation.
-func (m *ProductMutation) PictureURL() (r string, exists bool) {
-	v := m.picture_url
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPictureURL returns the old "picture_url" field's value of the Product entity.
-// If the Product object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProductMutation) OldPictureURL(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldPictureURL is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldPictureURL requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPictureURL: %w", err)
-	}
-	return oldValue.PictureURL, nil
-}
-
-// ClearPictureURL clears the value of the "picture_url" field.
-func (m *ProductMutation) ClearPictureURL() {
-	m.picture_url = nil
-	m.clearedFields[product.FieldPictureURL] = struct{}{}
-}
-
-// PictureURLCleared returns if the "picture_url" field was cleared in this mutation.
-func (m *ProductMutation) PictureURLCleared() bool {
-	_, ok := m.clearedFields[product.FieldPictureURL]
-	return ok
-}
-
-// ResetPictureURL resets all changes to the "picture_url" field.
-func (m *ProductMutation) ResetPictureURL() {
-	m.picture_url = nil
-	delete(m.clearedFields, product.FieldPictureURL)
-}
-
 // AddOrderIDs adds the "orders" edge to the Order entity by ids.
 func (m *ProductMutation) AddOrderIDs(ids ...uuid.UUID) {
 	if m.orders == nil {
@@ -2380,6 +2701,45 @@ func (m *ProductMutation) ResetShoppingCartOwners() {
 	m.removedshopping_cart_owners = nil
 }
 
+// SetPictureID sets the "picture" edge to the Picture entity by id.
+func (m *ProductMutation) SetPictureID(id uuid.UUID) {
+	m.picture = &id
+}
+
+// ClearPicture clears the "picture" edge to the Picture entity.
+func (m *ProductMutation) ClearPicture() {
+	m.clearedpicture = true
+}
+
+// PictureCleared reports if the "picture" edge to the Picture entity was cleared.
+func (m *ProductMutation) PictureCleared() bool {
+	return m.clearedpicture
+}
+
+// PictureID returns the "picture" edge ID in the mutation.
+func (m *ProductMutation) PictureID() (id uuid.UUID, exists bool) {
+	if m.picture != nil {
+		return *m.picture, true
+	}
+	return
+}
+
+// PictureIDs returns the "picture" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PictureID instead. It exists only for internal usage by the builders.
+func (m *ProductMutation) PictureIDs() (ids []uuid.UUID) {
+	if id := m.picture; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPicture resets all changes to the "picture" edge.
+func (m *ProductMutation) ResetPicture() {
+	m.picture = nil
+	m.clearedpicture = false
+}
+
 // Where appends a list predicates to the ProductMutation builder.
 func (m *ProductMutation) Where(ps ...predicate.Product) {
 	m.predicates = append(m.predicates, ps...)
@@ -2399,7 +2759,7 @@ func (m *ProductMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProductMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, product.FieldName)
 	}
@@ -2411,9 +2771,6 @@ func (m *ProductMutation) Fields() []string {
 	}
 	if m.quantity != nil {
 		fields = append(fields, product.FieldQuantity)
-	}
-	if m.picture_url != nil {
-		fields = append(fields, product.FieldPictureURL)
 	}
 	return fields
 }
@@ -2431,8 +2788,6 @@ func (m *ProductMutation) Field(name string) (ent.Value, bool) {
 		return m.Price()
 	case product.FieldQuantity:
 		return m.Quantity()
-	case product.FieldPictureURL:
-		return m.PictureURL()
 	}
 	return nil, false
 }
@@ -2450,8 +2805,6 @@ func (m *ProductMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldPrice(ctx)
 	case product.FieldQuantity:
 		return m.OldQuantity(ctx)
-	case product.FieldPictureURL:
-		return m.OldPictureURL(ctx)
 	}
 	return nil, fmt.Errorf("unknown Product field %s", name)
 }
@@ -2488,13 +2841,6 @@ func (m *ProductMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetQuantity(v)
-		return nil
-	case product.FieldPictureURL:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPictureURL(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Product field %s", name)
@@ -2556,9 +2902,6 @@ func (m *ProductMutation) ClearedFields() []string {
 	if m.FieldCleared(product.FieldDescription) {
 		fields = append(fields, product.FieldDescription)
 	}
-	if m.FieldCleared(product.FieldPictureURL) {
-		fields = append(fields, product.FieldPictureURL)
-	}
 	return fields
 }
 
@@ -2575,9 +2918,6 @@ func (m *ProductMutation) ClearField(name string) error {
 	switch name {
 	case product.FieldDescription:
 		m.ClearDescription()
-		return nil
-	case product.FieldPictureURL:
-		m.ClearPictureURL()
 		return nil
 	}
 	return fmt.Errorf("unknown Product nullable field %s", name)
@@ -2599,16 +2939,13 @@ func (m *ProductMutation) ResetField(name string) error {
 	case product.FieldQuantity:
 		m.ResetQuantity()
 		return nil
-	case product.FieldPictureURL:
-		m.ResetPictureURL()
-		return nil
 	}
 	return fmt.Errorf("unknown Product field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProductMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.orders != nil {
 		edges = append(edges, product.EdgeOrders)
 	}
@@ -2617,6 +2954,9 @@ func (m *ProductMutation) AddedEdges() []string {
 	}
 	if m.shopping_cart_owners != nil {
 		edges = append(edges, product.EdgeShoppingCartOwners)
+	}
+	if m.picture != nil {
+		edges = append(edges, product.EdgePicture)
 	}
 	return edges
 }
@@ -2643,13 +2983,17 @@ func (m *ProductMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case product.EdgePicture:
+		if id := m.picture; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProductMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedorders != nil {
 		edges = append(edges, product.EdgeOrders)
 	}
@@ -2690,7 +3034,7 @@ func (m *ProductMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProductMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedorders {
 		edges = append(edges, product.EdgeOrders)
 	}
@@ -2699,6 +3043,9 @@ func (m *ProductMutation) ClearedEdges() []string {
 	}
 	if m.clearedshopping_cart_owners {
 		edges = append(edges, product.EdgeShoppingCartOwners)
+	}
+	if m.clearedpicture {
+		edges = append(edges, product.EdgePicture)
 	}
 	return edges
 }
@@ -2713,6 +3060,8 @@ func (m *ProductMutation) EdgeCleared(name string) bool {
 		return m.clearedcategories
 	case product.EdgeShoppingCartOwners:
 		return m.clearedshopping_cart_owners
+	case product.EdgePicture:
+		return m.clearedpicture
 	}
 	return false
 }
@@ -2721,6 +3070,9 @@ func (m *ProductMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *ProductMutation) ClearEdge(name string) error {
 	switch name {
+	case product.EdgePicture:
+		m.ClearPicture()
+		return nil
 	}
 	return fmt.Errorf("unknown Product unique edge %s", name)
 }
@@ -2737,6 +3089,9 @@ func (m *ProductMutation) ResetEdge(name string) error {
 		return nil
 	case product.EdgeShoppingCartOwners:
 		m.ResetShoppingCartOwners()
+		return nil
+	case product.EdgePicture:
+		m.ResetPicture()
 		return nil
 	}
 	return fmt.Errorf("unknown Product edge %s", name)

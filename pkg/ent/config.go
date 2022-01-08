@@ -27,6 +27,7 @@ type hooks struct {
 	Category []ent.Hook
 	Discount []ent.Hook
 	Order    []ent.Hook
+	Picture  []ent.Hook
 	Product  []ent.Hook
 	User     []ent.Hook
 }

@@ -10,6 +10,7 @@ import (
 	ent "github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent"
 	category "github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/category"
 	order "github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/order"
+	picture "github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/picture"
 	product "github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/product"
 	user "github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/user"
 	uuid "github.com/google/uuid"
@@ -44,8 +45,6 @@ func toProtoProduct(e *ent.Product) (*Product, error) {
 	v.Id = id
 	name := e.Name
 	v.Name = name
-	pictureurl := wrapperspb.String(e.PictureURL)
-	v.PictureUrl = pictureurl
 	price := e.Price
 	v.Price = price
 	quantity := int32(e.Quantity)
@@ -67,6 +66,15 @@ func toProtoProduct(e *ent.Product) (*Product, error) {
 		v.Orders = append(v.Orders, &Order{
 			Id: id,
 		})
+	}
+	if edg := e.Edges.Picture; edg != nil {
+		id, err := edg.ID.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		v.Picture = &Picture{
+			Id: id,
+		}
 	}
 	for _, edg := range e.Edges.ShoppingCartOwners {
 		id, err := edg.ID.MarshalBinary()
@@ -90,10 +98,6 @@ func (svc *ProductService) Create(ctx context.Context, req *CreateProductRequest
 	}
 	productName := product.GetName()
 	m.SetName(productName)
-	if product.GetPictureUrl() != nil {
-		productPictureURL := product.GetPictureUrl().GetValue()
-		m.SetPictureURL(productPictureURL)
-	}
 	productPrice := float64(product.GetPrice())
 	m.SetPrice(productPrice)
 	productQuantity := int(product.GetQuantity())
@@ -112,6 +116,11 @@ func (svc *ProductService) Create(ctx context.Context, req *CreateProductRequest
 		}
 		m.AddOrderIDs(orders)
 	}
+	var productPicture uuid.UUID
+	if err := (&productPicture).UnmarshalBinary(product.GetPicture().GetId()); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
+	m.SetPictureID(productPicture)
 	for _, item := range product.GetShoppingCartOwners() {
 		var shoppingcartowners uuid.UUID
 		if err := (&shoppingcartowners).UnmarshalBinary(item.GetId()); err != nil {
@@ -159,6 +168,9 @@ func (svc *ProductService) Get(ctx context.Context, req *GetProductRequest) (*Pr
 			WithOrders(func(query *ent.OrderQuery) {
 				query.Select(order.FieldID)
 			}).
+			WithPicture(func(query *ent.PictureQuery) {
+				query.Select(picture.FieldID)
+			}).
 			WithShoppingCartOwners(func(query *ent.UserQuery) {
 				query.Select(user.FieldID)
 			}).
@@ -192,10 +204,6 @@ func (svc *ProductService) Update(ctx context.Context, req *UpdateProductRequest
 	}
 	productName := product.GetName()
 	m.SetName(productName)
-	if product.GetPictureUrl() != nil {
-		productPictureURL := product.GetPictureUrl().GetValue()
-		m.SetPictureURL(productPictureURL)
-	}
 	productPrice := float64(product.GetPrice())
 	m.SetPrice(productPrice)
 	productQuantity := int(product.GetQuantity())
@@ -214,6 +222,11 @@ func (svc *ProductService) Update(ctx context.Context, req *UpdateProductRequest
 		}
 		m.AddOrderIDs(orders)
 	}
+	var productPicture uuid.UUID
+	if err := (&productPicture).UnmarshalBinary(product.GetPicture().GetId()); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
+	m.SetPictureID(productPicture)
 	for _, item := range product.GetShoppingCartOwners() {
 		var shoppingcartowners uuid.UUID
 		if err := (&shoppingcartowners).UnmarshalBinary(item.GetId()); err != nil {
@@ -297,6 +310,9 @@ func (svc *ProductService) List(ctx context.Context, req *ListProductRequest) (*
 			}).
 			WithOrders(func(query *ent.OrderQuery) {
 				query.Select(order.FieldID)
+			}).
+			WithPicture(func(query *ent.PictureQuery) {
+				query.Select(picture.FieldID)
 			}).
 			WithShoppingCartOwners(func(query *ent.UserQuery) {
 				query.Select(user.FieldID)

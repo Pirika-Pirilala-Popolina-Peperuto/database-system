@@ -13,6 +13,7 @@ import (
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/category"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/discount"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/order"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/picture"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/product"
 	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/user"
 
@@ -32,6 +33,8 @@ type Client struct {
 	Discount *DiscountClient
 	// Order is the client for interacting with the Order builders.
 	Order *OrderClient
+	// Picture is the client for interacting with the Picture builders.
+	Picture *PictureClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
 	// User is the client for interacting with the User builders.
@@ -52,6 +55,7 @@ func (c *Client) init() {
 	c.Category = NewCategoryClient(c.config)
 	c.Discount = NewDiscountClient(c.config)
 	c.Order = NewOrderClient(c.config)
+	c.Picture = NewPictureClient(c.config)
 	c.Product = NewProductClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -90,6 +94,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Category: NewCategoryClient(cfg),
 		Discount: NewDiscountClient(cfg),
 		Order:    NewOrderClient(cfg),
+		Picture:  NewPictureClient(cfg),
 		Product:  NewProductClient(cfg),
 		User:     NewUserClient(cfg),
 	}, nil
@@ -113,6 +118,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Category: NewCategoryClient(cfg),
 		Discount: NewDiscountClient(cfg),
 		Order:    NewOrderClient(cfg),
+		Picture:  NewPictureClient(cfg),
 		Product:  NewProductClient(cfg),
 		User:     NewUserClient(cfg),
 	}, nil
@@ -147,6 +153,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Category.Use(hooks...)
 	c.Discount.Use(hooks...)
 	c.Order.Use(hooks...)
+	c.Picture.Use(hooks...)
 	c.Product.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -501,6 +508,112 @@ func (c *OrderClient) Hooks() []Hook {
 	return c.hooks.Order
 }
 
+// PictureClient is a client for the Picture schema.
+type PictureClient struct {
+	config
+}
+
+// NewPictureClient returns a client for the Picture from the given config.
+func NewPictureClient(c config) *PictureClient {
+	return &PictureClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `picture.Hooks(f(g(h())))`.
+func (c *PictureClient) Use(hooks ...Hook) {
+	c.hooks.Picture = append(c.hooks.Picture, hooks...)
+}
+
+// Create returns a create builder for Picture.
+func (c *PictureClient) Create() *PictureCreate {
+	mutation := newPictureMutation(c.config, OpCreate)
+	return &PictureCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Picture entities.
+func (c *PictureClient) CreateBulk(builders ...*PictureCreate) *PictureCreateBulk {
+	return &PictureCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Picture.
+func (c *PictureClient) Update() *PictureUpdate {
+	mutation := newPictureMutation(c.config, OpUpdate)
+	return &PictureUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PictureClient) UpdateOne(pi *Picture) *PictureUpdateOne {
+	mutation := newPictureMutation(c.config, OpUpdateOne, withPicture(pi))
+	return &PictureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PictureClient) UpdateOneID(id uuid.UUID) *PictureUpdateOne {
+	mutation := newPictureMutation(c.config, OpUpdateOne, withPictureID(id))
+	return &PictureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Picture.
+func (c *PictureClient) Delete() *PictureDelete {
+	mutation := newPictureMutation(c.config, OpDelete)
+	return &PictureDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PictureClient) DeleteOne(pi *Picture) *PictureDeleteOne {
+	return c.DeleteOneID(pi.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PictureClient) DeleteOneID(id uuid.UUID) *PictureDeleteOne {
+	builder := c.Delete().Where(picture.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PictureDeleteOne{builder}
+}
+
+// Query returns a query builder for Picture.
+func (c *PictureClient) Query() *PictureQuery {
+	return &PictureQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Picture entity by its id.
+func (c *PictureClient) Get(ctx context.Context, id uuid.UUID) (*Picture, error) {
+	return c.Query().Where(picture.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PictureClient) GetX(ctx context.Context, id uuid.UUID) *Picture {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProduct queries the product edge of a Picture.
+func (c *PictureClient) QueryProduct(pi *Picture) *ProductQuery {
+	query := &ProductQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pi.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(picture.Table, picture.FieldID, id),
+			sqlgraph.To(product.Table, product.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, picture.ProductTable, picture.ProductColumn),
+		)
+		fromV = sqlgraph.Neighbors(pi.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PictureClient) Hooks() []Hook {
+	return c.hooks.Picture
+}
+
 // ProductClient is a client for the Product schema.
 type ProductClient struct {
 	config
@@ -627,6 +740,22 @@ func (c *ProductClient) QueryShoppingCartOwners(pr *Product) *UserQuery {
 			sqlgraph.From(product.Table, product.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, product.ShoppingCartOwnersTable, product.ShoppingCartOwnersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPicture queries the picture edge of a Product.
+func (c *ProductClient) QueryPicture(pr *Product) *PictureQuery {
+	query := &PictureQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, id),
+			sqlgraph.To(picture.Table, picture.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, product.PictureTable, product.PictureColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil

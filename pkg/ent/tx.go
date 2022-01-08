@@ -18,6 +18,8 @@ type Tx struct {
 	Discount *DiscountClient
 	// Order is the client for interacting with the Order builders.
 	Order *OrderClient
+	// Picture is the client for interacting with the Picture builders.
+	Picture *PictureClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
 	// User is the client for interacting with the User builders.
@@ -160,6 +162,7 @@ func (tx *Tx) init() {
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Discount = NewDiscountClient(tx.config)
 	tx.Order = NewOrderClient(tx.config)
+	tx.Picture = NewPictureClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

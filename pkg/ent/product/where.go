@@ -120,13 +120,6 @@ func Quantity(v int) predicate.Product {
 	})
 }
 
-// PictureURL applies equality check predicate on the "picture_url" field. It's identical to PictureURLEQ.
-func PictureURL(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldPictureURL), v))
-	})
-}
-
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
@@ -515,131 +508,6 @@ func QuantityLTE(v int) predicate.Product {
 	})
 }
 
-// PictureURLEQ applies the EQ predicate on the "picture_url" field.
-func PictureURLEQ(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLNEQ applies the NEQ predicate on the "picture_url" field.
-func PictureURLNEQ(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLIn applies the In predicate on the "picture_url" field.
-func PictureURLIn(vs ...string) predicate.Product {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Product(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldPictureURL), v...))
-	})
-}
-
-// PictureURLNotIn applies the NotIn predicate on the "picture_url" field.
-func PictureURLNotIn(vs ...string) predicate.Product {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Product(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldPictureURL), v...))
-	})
-}
-
-// PictureURLGT applies the GT predicate on the "picture_url" field.
-func PictureURLGT(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLGTE applies the GTE predicate on the "picture_url" field.
-func PictureURLGTE(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLLT applies the LT predicate on the "picture_url" field.
-func PictureURLLT(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLLTE applies the LTE predicate on the "picture_url" field.
-func PictureURLLTE(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLContains applies the Contains predicate on the "picture_url" field.
-func PictureURLContains(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLHasPrefix applies the HasPrefix predicate on the "picture_url" field.
-func PictureURLHasPrefix(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLHasSuffix applies the HasSuffix predicate on the "picture_url" field.
-func PictureURLHasSuffix(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLIsNil applies the IsNil predicate on the "picture_url" field.
-func PictureURLIsNil() predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldPictureURL)))
-	})
-}
-
-// PictureURLNotNil applies the NotNil predicate on the "picture_url" field.
-func PictureURLNotNil() predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldPictureURL)))
-	})
-}
-
-// PictureURLEqualFold applies the EqualFold predicate on the "picture_url" field.
-func PictureURLEqualFold(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldPictureURL), v))
-	})
-}
-
-// PictureURLContainsFold applies the ContainsFold predicate on the "picture_url" field.
-func PictureURLContainsFold(v string) predicate.Product {
-	return predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldPictureURL), v))
-	})
-}
-
 // HasOrders applies the HasEdge predicate on the "orders" edge.
 func HasOrders() predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
@@ -715,6 +583,34 @@ func HasShoppingCartOwnersWith(preds ...predicate.User) predicate.Product {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ShoppingCartOwnersInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, ShoppingCartOwnersTable, ShoppingCartOwnersPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPicture applies the HasEdge predicate on the "picture" edge.
+func HasPicture() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PictureTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, PictureTable, PictureColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPictureWith applies the HasEdge predicate on the "picture" edge with a given conditions (other predicates).
+func HasPictureWith(preds ...predicate.Picture) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PictureInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, PictureTable, PictureColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

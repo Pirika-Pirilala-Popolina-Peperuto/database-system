@@ -56,6 +56,26 @@ var (
 			},
 		},
 	}
+	// PicturesColumns holds the columns for the "pictures" table.
+	PicturesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: "gen_random_uuid()"},
+		{Name: "picture_url", Type: field.TypeString},
+		{Name: "product_picture", Type: field.TypeUUID, Unique: true, Nullable: true},
+	}
+	// PicturesTable holds the schema information for the "pictures" table.
+	PicturesTable = &schema.Table{
+		Name:       "pictures",
+		Columns:    PicturesColumns,
+		PrimaryKey: []*schema.Column{PicturesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "pictures_products_picture",
+				Columns:    []*schema.Column{PicturesColumns[2]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: "gen_random_uuid()"},
@@ -63,7 +83,6 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "price", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "decimal(12,2)"}},
 		{Name: "quantity", Type: field.TypeInt},
-		{Name: "picture_url", Type: field.TypeString, Nullable: true},
 	}
 	// ProductsTable holds the schema information for the "products" table.
 	ProductsTable = &schema.Table{
@@ -190,6 +209,7 @@ var (
 		CategoriesTable,
 		DiscountsTable,
 		OrdersTable,
+		PicturesTable,
 		ProductsTable,
 		UsersTable,
 		OrderProductsTable,
@@ -201,6 +221,7 @@ var (
 
 func init() {
 	OrdersTable.ForeignKeys[0].RefTable = UsersTable
+	PicturesTable.ForeignKeys[0].RefTable = ProductsTable
 	OrderProductsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderProductsTable.ForeignKeys[1].RefTable = ProductsTable
 	OrderDiscountsTable.ForeignKeys[0].RefTable = OrdersTable

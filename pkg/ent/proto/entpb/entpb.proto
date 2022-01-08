@@ -215,6 +215,62 @@ message ListOrderResponse {
   string next_page_token = 2;
 }
 
+message Picture {
+  bytes id = 1;
+
+  string picture_url = 2;
+
+  Product product = 3;
+}
+
+message CreatePictureRequest {
+  Picture picture = 1;
+}
+
+message GetPictureRequest {
+  bytes id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message UpdatePictureRequest {
+  Picture picture = 1;
+}
+
+message DeletePictureRequest {
+  bytes id = 1;
+}
+
+message ListPictureRequest {
+  int32 page_size = 1;
+
+  string page_token = 2;
+
+  View view = 3;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message ListPictureResponse {
+  repeated Picture picture_list = 1;
+
+  string next_page_token = 2;
+}
+
 message Product {
   bytes id = 1;
 
@@ -226,13 +282,13 @@ message Product {
 
   int32 quantity = 5;
 
-  google.protobuf.StringValue picture_url = 6;
+  repeated Order orders = 6;
 
-  repeated Order orders = 7;
+  repeated Category categories = 7;
 
-  repeated Category categories = 8;
+  repeated User shopping_cart_owners = 8;
 
-  repeated User shopping_cart_owners = 9;
+  Picture picture = 9;
 }
 
 message CreateProductRequest {
@@ -381,6 +437,18 @@ service OrderService {
   rpc Delete ( DeleteOrderRequest ) returns ( google.protobuf.Empty );
 
   rpc List ( ListOrderRequest ) returns ( ListOrderResponse );
+}
+
+service PictureService {
+  rpc Create ( CreatePictureRequest ) returns ( Picture );
+
+  rpc Get ( GetPictureRequest ) returns ( Picture );
+
+  rpc Update ( UpdatePictureRequest ) returns ( Picture );
+
+  rpc Delete ( DeletePictureRequest ) returns ( google.protobuf.Empty );
+
+  rpc List ( ListPictureRequest ) returns ( ListPictureResponse );
 }
 
 service ProductService {
