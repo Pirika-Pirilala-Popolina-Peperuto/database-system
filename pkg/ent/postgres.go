@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	entsql "entgo.io/ent/dialect/sql"
+	"github.com/Pirika-Pirilala-Popolina-Peperuto/database-system/pkg/ent/migrate"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
@@ -40,7 +41,7 @@ func NewPostgresClientWithLC(drv *entsql.Driver, lc fx.Lifecycle) (*Client, erro
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			return db.Schema.Create(ctx)
+			return db.Schema.Create(ctx, migrate.WithDropColumn(true))
 		},
 		OnStop: func(ctx context.Context) error {
 			return db.Close()
