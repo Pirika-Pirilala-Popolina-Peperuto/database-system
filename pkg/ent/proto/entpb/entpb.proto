@@ -352,9 +352,11 @@ message User {
 
   string address = 5;
 
-  repeated Order orders = 6;
+  string user_type = 6;
 
-  repeated Product shopping_cart_products = 7;
+  repeated Order orders = 7;
+
+  repeated Product shopping_cart_products = 8;
 }
 
 message CreateUserRequest {

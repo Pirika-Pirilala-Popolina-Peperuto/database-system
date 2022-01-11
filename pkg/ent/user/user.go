@@ -15,6 +15,8 @@ const (
 	FieldEmail = "email"
 	// FieldAddress holds the string denoting the address field in the database.
 	FieldAddress = "address"
+	// FieldUserType holds the string denoting the user_type field in the database.
+	FieldUserType = "user_type"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
 	EdgeOrders = "orders"
 	// EdgeShoppingCartProducts holds the string denoting the shopping_cart_products edge name in mutations.
@@ -42,6 +44,7 @@ var Columns = []string{
 	FieldPassword,
 	FieldEmail,
 	FieldAddress,
+	FieldUserType,
 }
 
 var (

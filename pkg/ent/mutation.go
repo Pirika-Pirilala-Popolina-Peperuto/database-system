@@ -3147,6 +3147,7 @@ type UserMutation struct {
 	password                      *string
 	email                         *string
 	address                       *string
+	user_type                     *string
 	clearedFields                 map[string]struct{}
 	orders                        map[uuid.UUID]struct{}
 	removedorders                 map[uuid.UUID]struct{}
@@ -3388,6 +3389,42 @@ func (m *UserMutation) ResetAddress() {
 	m.address = nil
 }
 
+// SetUserType sets the "user_type" field.
+func (m *UserMutation) SetUserType(s string) {
+	m.user_type = &s
+}
+
+// UserType returns the value of the "user_type" field in the mutation.
+func (m *UserMutation) UserType() (r string, exists bool) {
+	v := m.user_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserType returns the old "user_type" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUserType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUserType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUserType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserType: %w", err)
+	}
+	return oldValue.UserType, nil
+}
+
+// ResetUserType resets all changes to the "user_type" field.
+func (m *UserMutation) ResetUserType() {
+	m.user_type = nil
+}
+
 // AddOrderIDs adds the "orders" edge to the Order entity by ids.
 func (m *UserMutation) AddOrderIDs(ids ...uuid.UUID) {
 	if m.orders == nil {
@@ -3515,7 +3552,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, user.FieldName)
 	}
@@ -3527,6 +3564,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.address != nil {
 		fields = append(fields, user.FieldAddress)
+	}
+	if m.user_type != nil {
+		fields = append(fields, user.FieldUserType)
 	}
 	return fields
 }
@@ -3544,6 +3584,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldAddress:
 		return m.Address()
+	case user.FieldUserType:
+		return m.UserType()
 	}
 	return nil, false
 }
@@ -3561,6 +3603,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldAddress:
 		return m.OldAddress(ctx)
+	case user.FieldUserType:
+		return m.OldUserType(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -3597,6 +3641,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAddress(v)
+		return nil
+	case user.FieldUserType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -3658,6 +3709,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldAddress:
 		m.ResetAddress()
+		return nil
+	case user.FieldUserType:
+		m.ResetUserType()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

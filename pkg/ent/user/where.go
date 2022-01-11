@@ -120,6 +120,13 @@ func Address(v string) predicate.User {
 	})
 }
 
+// UserType applies equality check predicate on the "user_type" field. It's identical to UserTypeEQ.
+func UserType(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUserType), v))
+	})
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -561,6 +568,117 @@ func AddressEqualFold(v string) predicate.User {
 func AddressContainsFold(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldAddress), v))
+	})
+}
+
+// UserTypeEQ applies the EQ predicate on the "user_type" field.
+func UserTypeEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeNEQ applies the NEQ predicate on the "user_type" field.
+func UserTypeNEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeIn applies the In predicate on the "user_type" field.
+func UserTypeIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldUserType), v...))
+	})
+}
+
+// UserTypeNotIn applies the NotIn predicate on the "user_type" field.
+func UserTypeNotIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldUserType), v...))
+	})
+}
+
+// UserTypeGT applies the GT predicate on the "user_type" field.
+func UserTypeGT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeGTE applies the GTE predicate on the "user_type" field.
+func UserTypeGTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeLT applies the LT predicate on the "user_type" field.
+func UserTypeLT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeLTE applies the LTE predicate on the "user_type" field.
+func UserTypeLTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeContains applies the Contains predicate on the "user_type" field.
+func UserTypeContains(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeHasPrefix applies the HasPrefix predicate on the "user_type" field.
+func UserTypeHasPrefix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeHasSuffix applies the HasSuffix predicate on the "user_type" field.
+func UserTypeHasSuffix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeEqualFold applies the EqualFold predicate on the "user_type" field.
+func UserTypeEqualFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldUserType), v))
+	})
+}
+
+// UserTypeContainsFold applies the ContainsFold predicate on the "user_type" field.
+func UserTypeContainsFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldUserType), v))
 	})
 }
 

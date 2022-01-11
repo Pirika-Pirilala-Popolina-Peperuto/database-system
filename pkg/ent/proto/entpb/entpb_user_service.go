@@ -46,6 +46,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Name = name
 	password := e.Password
 	v.Password = password
+	usertype := e.UserType
+	v.UserType = usertype
 	for _, edg := range e.Edges.Orders {
 		id, err := edg.ID.MarshalBinary()
 		if err != nil {
@@ -79,6 +81,8 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetName(userName)
 	userPassword := user.GetPassword()
 	m.SetPassword(userPassword)
+	userUserType := user.GetUserType()
+	m.SetUserType(userUserType)
 	for _, item := range user.GetOrders() {
 		var orders uuid.UUID
 		if err := (&orders).UnmarshalBinary(item.GetId()); err != nil {
@@ -165,6 +169,8 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetName(userName)
 	userPassword := user.GetPassword()
 	m.SetPassword(userPassword)
+	userUserType := user.GetUserType()
+	m.SetUserType(userUserType)
 	for _, item := range user.GetOrders() {
 		var orders uuid.UUID
 		if err := (&orders).UnmarshalBinary(item.GetId()); err != nil {

@@ -53,6 +53,12 @@ func (uu *UserUpdate) SetAddress(s string) *UserUpdate {
 	return uu
 }
 
+// SetUserType sets the "user_type" field.
+func (uu *UserUpdate) SetUserType(s string) *UserUpdate {
+	uu.mutation.SetUserType(s)
+	return uu
+}
+
 // AddOrderIDs adds the "orders" edge to the Order entity by IDs.
 func (uu *UserUpdate) AddOrderIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddOrderIDs(ids...)
@@ -230,6 +236,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldAddress,
 		})
 	}
+	if value, ok := uu.mutation.UserType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldUserType,
+		})
+	}
 	if uu.mutation.OrdersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -378,6 +391,12 @@ func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
 // SetAddress sets the "address" field.
 func (uuo *UserUpdateOne) SetAddress(s string) *UserUpdateOne {
 	uuo.mutation.SetAddress(s)
+	return uuo
+}
+
+// SetUserType sets the "user_type" field.
+func (uuo *UserUpdateOne) SetUserType(s string) *UserUpdateOne {
+	uuo.mutation.SetUserType(s)
 	return uuo
 }
 
@@ -580,6 +599,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeString,
 			Value:  value,
 			Column: user.FieldAddress,
+		})
+	}
+	if value, ok := uuo.mutation.UserType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldUserType,
 		})
 	}
 	if uuo.mutation.OrdersCleared() {

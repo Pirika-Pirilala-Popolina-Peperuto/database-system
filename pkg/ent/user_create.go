@@ -46,6 +46,12 @@ func (uc *UserCreate) SetAddress(s string) *UserCreate {
 	return uc
 }
 
+// SetUserType sets the "user_type" field.
+func (uc *UserCreate) SetUserType(s string) *UserCreate {
+	uc.mutation.SetUserType(s)
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 	uc.mutation.SetID(u)
@@ -164,6 +170,9 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Address(); !ok {
 		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "address"`)}
 	}
+	if _, ok := uc.mutation.UserType(); !ok {
+		return &ValidationError{Name: "user_type", err: errors.New(`ent: missing required field "user_type"`)}
+	}
 	return nil
 }
 
@@ -227,6 +236,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldAddress,
 		})
 		_node.Address = value
+	}
+	if value, ok := uc.mutation.UserType(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldUserType,
+		})
+		_node.UserType = value
 	}
 	if nodes := uc.mutation.OrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

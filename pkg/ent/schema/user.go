@@ -33,6 +33,10 @@ func (User) Fields() []ent.Field {
 			Annotations(entproto.Field(4)),
 		field.String("address").
 			Annotations(entproto.Field(5)),
+		field.String("user_type").
+			Annotations(&entsql.Annotation{
+				Default: "customer",
+			}, entproto.Field(6)),
 	}
 }
 
@@ -40,10 +44,10 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("orders", Order.Type).
-			Annotations(entproto.Field(6)),
+			Annotations(entproto.Field(7)),
 		edge.To("shopping_cart_products", Product.Type).
 			StorageKey(edge.Table("shopping_cart")).
-			Annotations(entproto.Field(7)),
+			Annotations(entproto.Field(8)),
 	}
 }
 
